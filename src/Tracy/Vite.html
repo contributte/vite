@@ -35,14 +35,14 @@
 
         const element = document.querySelector('#tracy-debug [data-action="@contributte/vite"]')
 
-        if (!getCookie('@contributte/vite')) {
+        if (!getCookie('%viteCookie%')) {
             element.style.opacity = '40%'
         }
 
         element.addEventListener('click', () => {
-            document.cookie = getCookie('@contributte/vite') ? '@contributte/vite=false; path=/;' : '@contributte/vite=true; path=/;'
+            document.cookie = getCookie('%viteCookie%') ? '%viteCookie%=false; path=/;' : '%viteCookie%=true; path=/;'
 
-            getCookie('@contributte/vite') ? (element.style.opacity = '') : (element.style.opacity = '40%')
+            getCookie('%viteCookie%') ? (element.style.opacity = '') : (element.style.opacity = '40%')
             document.location.reload()
         })
     })()

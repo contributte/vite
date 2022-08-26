@@ -22,6 +22,7 @@ final class Extension extends CompilerExtension
 	{
 		return Schema\Expect::structure([
 			'server' => Schema\Expect::string('http://localhost:5173'),
+            'cookie' => Schema\Expect::string('contributte/vite'),
 			'debugMode' => Schema\Expect::bool($this->getContainerBuilder()->parameters['debugMode'] ?? false),
 			'manifestFile' => Schema\Expect::string(),
 			'filterName' => Schema\Expect::string('asset'), // empty string is for disabled
@@ -46,6 +47,7 @@ final class Extension extends CompilerExtension
 			->setFactory(Service::class)
 			->setArguments([
 				'viteServer' => $this->config->server,
+				'viteCookie' => $this->config->cookie,
 				'manifestFile' => $manifestFile,
 				'debugMode' => $this->config->debugMode,
 				'basePath' => $this->prepareBasePath($manifestFile),
@@ -90,6 +92,8 @@ final class Extension extends CompilerExtension
 		}
 
 		$tracyClass = Tracy\Bar::class;
+
+
 		if ($this->config->debugMode && $builder->getByType($tracyClass)) {
 			$definition = $this->getContainerBuilder()
 				->getDefinition($this->prefix('service'));

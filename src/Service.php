@@ -11,6 +11,8 @@ final class Service
 {
 	private string $viteServer;
 
+    private string $viteCookie;
+
 	private string $manifestFile;
 
 	private bool $debugMode;
@@ -22,6 +24,7 @@ final class Service
 
 	public function __construct(
 		string $viteServer,
+		string $viteCookie,
 		string $manifestFile,
 		bool $debugMode,
 		string $basePath,
@@ -29,6 +32,7 @@ final class Service
 	)
 	{
 		$this->viteServer = $viteServer;
+		$this->viteCookie = $viteCookie;
 		$this->manifestFile = $manifestFile;
 		$this->debugMode = $debugMode;
 		$this->basePath = $basePath;
@@ -79,7 +83,7 @@ final class Service
 
 	public function isEnabled(): bool
 	{
-		return $this->debugMode && $this->httpRequest->getCookie('@contributte/vite') === 'true';
+		return $this->debugMode && $this->httpRequest->getCookie($this->viteCookie) === 'true';
 	}
 
 
@@ -100,5 +104,13 @@ final class Service
 			echo Html::el('script')->type('module')->src($path);
 		}
 	}
+
+    /**
+     * @return string
+     */
+    public function getViteCookie(): string
+    {
+        return $this->viteCookie;
+    }
 
 }
