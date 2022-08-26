@@ -46,6 +46,7 @@ final class Service
 			$baseUrl = $this->viteServer . '/';
 			$asset = $entrypoint;
 		} else {
+			$entrypoint = ltrim($entrypoint, '/');
 			$baseUrl = $this->basePath;
 			$asset = '';
 
@@ -70,6 +71,7 @@ final class Service
 
 		if (!$this->isEnabled()) {
 			if (file_exists($this->manifestFile)) {
+				$entrypoint = ltrim($entrypoint, '/');
 				$manifest = Json::decode(FileSystem::read($this->manifestFile), Json::FORCE_ARRAY);
 				$assets = $manifest[$entrypoint]['css'] ?? [];
 			} else {
