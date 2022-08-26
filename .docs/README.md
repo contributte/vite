@@ -4,6 +4,9 @@
 
 - [Setup](#setup)
 - [Usage](#usage)
+- [Config](#config)
+- [Tracy](#tracy)
+- [Vite](#vite)
 
 ## Setup
 
@@ -85,7 +88,7 @@ Path to your public `www` dir. By default it's where `index.php` is executed.
 ### basePath
 - **Type:** `string`
 
-## Tracy integration
+## Tracy
 You can enable and disable vite dev server via Tracy with Vite button. If enabled, then all assets with `{vite}` filter are loaded from the local vite dev server for fast development without build.
 To use this, you have to run vite with `vite` command first. By default, Vite runs on `http://localhost:5173`, you can change this url in neon config or vite config.
 <br><br>
@@ -99,7 +102,7 @@ You have to also include `@vite/client` script in your layout if you want to ben
 {/if}
 ```
 
-## Vite configuration
+## Vite
 Learn more how to configure Vite [here](https://vitejs.dev/config/). Basic config in your project should look like this.
 
 ```javascript
