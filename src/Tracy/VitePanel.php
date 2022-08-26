@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Contributte\Vite\Tracy;
 
@@ -8,25 +10,22 @@ use Tracy;
 
 final class VitePanel implements Tracy\IBarPanel
 {
-    private Service $vite;
+	private Service $vite;
 
-
-    public function __construct(Service $vite)
-    {
-        $this->vite = $vite;
-    }
+	public function __construct(Service $vite)
+	{
+		$this->vite = $vite;
+	}
 
 	public function getTab()
 	{
-        $html = Safe::file_get_contents(__DIR__ . '/Vite.html');
+		$html = Safe::file_get_contents(__DIR__ . '/Vite.html');
 
-        return str_replace("%viteCookie%", $this->vite->getViteCookie(), $html);
+		return str_replace('%viteCookie%', $this->vite->getViteCookie(), $html);
 	}
-
 
 	public function getPanel()
 	{
 		return '';
 	}
-
 }

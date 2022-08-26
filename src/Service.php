@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Contributte\Vite;
 
@@ -11,7 +13,7 @@ final class Service
 {
 	private string $viteServer;
 
-    private string $viteCookie;
+	private string $viteCookie;
 
 	private string $manifestFile;
 
@@ -21,7 +23,6 @@ final class Service
 
 	private Request $httpRequest;
 
-
 	public function __construct(
 		string $viteServer,
 		string $viteCookie,
@@ -29,8 +30,7 @@ final class Service
 		bool $debugMode,
 		string $basePath,
 		Request $httpRequest
-	)
-	{
+	) {
 		$this->viteServer = $viteServer;
 		$this->viteCookie = $viteCookie;
 		$this->manifestFile = $manifestFile;
@@ -38,7 +38,6 @@ final class Service
 		$this->basePath = $basePath;
 		$this->httpRequest = $httpRequest;
 	}
-
 
 	public function getAsset(string $entrypoint): string
 	{
@@ -61,7 +60,6 @@ final class Service
 		return $baseUrl . $asset;
 	}
 
-
 	/**
 	 * @return array<string, string>
 	 */
@@ -82,12 +80,10 @@ final class Service
 		return $assets;
 	}
 
-
 	public function isEnabled(): bool
 	{
 		return $this->debugMode && $this->httpRequest->getCookie($this->viteCookie) === 'true';
 	}
-
 
 	public function printTags(string $entrypoint): void
 	{
@@ -107,12 +103,11 @@ final class Service
 		}
 	}
 
-    /**
-     * @return string
-     */
-    public function getViteCookie(): string
-    {
-        return $this->viteCookie;
-    }
-
+	/**
+	 * @return string
+	 */
+	public function getViteCookie(): string
+	{
+		return $this->viteCookie;
+	}
 }

@@ -12,4 +12,4 @@ csf:
 	vendor/bin/ecs check src --fix
 
 phpstan:
-	vendor/bin/phpstan analyze -l max src
+	vendor/bin/phpstan analyze -l 8 src

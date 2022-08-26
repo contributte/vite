@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Contributte\Vite\Nette;
 
@@ -17,28 +19,25 @@ use Tracy;
  */
 final class Extension extends CompilerExtension
 {
-
 	public function getConfigSchema(): Schema\Schema
 	{
 		return Schema\Expect::structure([
 			'server' => Schema\Expect::string('http://localhost:5173'),
-            'cookie' => Schema\Expect::string('contributte/vite'),
+			'cookie' => Schema\Expect::string('contributte/vite'),
 			'debugMode' => Schema\Expect::bool($this->getContainerBuilder()->parameters['debugMode'] ?? false),
 			'manifestFile' => Schema\Expect::string(),
-			'filterName' => Schema\Expect::string('asset'), // empty string is for disabled
-			'templateProperty' => Schema\Expect::string('_vite'), // empty string is for disabled
+			'filterName' => Schema\Expect::string('vite'), // empty string is for disabled
+			'templateProperty' => Schema\Expect::string('vite'), // empty string is for disabled
 			'wwwDir' => Schema\Expect::string($this->getContainerBuilder()->parameters['wwwDir'] ?? getcwd()),
 			'basePath' => Schema\Expect::string(),
 		]);
 	}
-
 
 	public function loadConfiguration(): void
 	{
 		$this->buildViteService();
 		$this->buildFilter();
 	}
-
 
 	private function buildViteService(): void
 	{
@@ -54,14 +53,12 @@ final class Extension extends CompilerExtension
 			]);
 	}
 
-
 	private function buildFilter(): void
 	{
 		$this->getContainerBuilder()->addDefinition($this->prefix('assetFilter'))
 			->setFactory(AssetFilter::class)
 			->setAutowired(false);
 	}
-
 
 	public function beforeCompile(): void
 	{
@@ -104,14 +101,12 @@ final class Extension extends CompilerExtension
 		}
 	}
 
-
 	public static function prepareTemplate(string $propertyName, Service $service): \Closure
 	{
 		return static function (Nette\Application\UI\Template $template) use ($propertyName, $service): void {
 			$template->{$propertyName} = $service;
 		};
 	}
-
 
 	private function prepareManifestPath(): string
 	{
@@ -132,7 +127,6 @@ final class Extension extends CompilerExtension
 		return Nette\Safe::realpath($manifestFile);
 	}
 
-
 	private function prepareBasePath(string $manifestFile): string
 	{
 		if ($this->config->basePath === null) {
@@ -141,7 +135,6 @@ final class Extension extends CompilerExtension
 
 		return $this->config->basePath;
 	}
-
 
 	private function automaticSearchManifestFile(): string
 	{
@@ -158,5 +151,4 @@ final class Extension extends CompilerExtension
 
 		return reset($files);
 	}
-
 }
