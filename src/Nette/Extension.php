@@ -1,6 +1,4 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types = 1);
 
 namespace Contributte\Vite\Nette;
 
@@ -8,28 +6,34 @@ use Contributte\Vite\AssetFilter;
 use Contributte\Vite\ManifestFileDoesNotExistsException;
 use Contributte\Vite\Service;
 use Contributte\Vite\Tracy\VitePanel;
-use Nette;
 use Nette\DI\CompilerExtension;
-use Nette\DI\Definitions;
-use Nette\Schema;
-use Tracy;
+use Nette\DI\Definitions\FactoryDefinition;
+use Nette\DI\Definitions\ServiceDefinition;
+use Nette\DI\Definitions\Statement;
+use Nette\Safe;
+use Nette\Schema\Expect;
+use Nette\Schema\Schema;
+use Nette\Utils\Finder;
+use stdClass;
+use Tracy\Bar;
 
 /**
- * @property \stdClass $config
+ * @property stdClass $config
  */
 final class Extension extends CompilerExtension
 {
-	public function getConfigSchema(): Schema\Schema
+
+	public function getConfigSchema(): Schema
 	{
-		return Schema\Expect::structure([
-			'server' => Schema\Expect::string('http://localhost:5173'),
-			'cookie' => Schema\Expect::string('contributte/vite'),
-			'debugMode' => Schema\Expect::bool($this->getContainerBuilder()->parameters['debugMode'] ?? false),
-			'manifestFile' => Schema\Expect::string(),
-			'filterName' => Schema\Expect::string('vite'), // empty string is for disabled
-			'templateProperty' => Schema\Expect::string('vite'), // empty string is for disabled
-			'wwwDir' => Schema\Expect::string($this->getContainerBuilder()->parameters['wwwDir'] ?? getcwd()),
-			'basePath' => Schema\Expect::string(),
+		return Expect::structure([
+			'server' => Expect::string('http://localhost:5173'),
+			'cookie' => Expect::string('contributte/vite'),
+			'debugMode' => Expect::bool($this->getContainerBuilder()->parameters['debugMode'] ?? false),
+			'manifestFile' => Expect::string(),
+			'filterName' => Expect::string('vite'), // empty string is for disabled
+			'templateProperty' => Expect::string('vite'), // empty string is for disabled
+			'wwwDir' => Expect::string($this->getContainerBuilder()->parameters['wwwDir'] ?? getcwd()),
+			'basePath' => Expect::string(),
 		]);
 	}
 
@@ -37,6 +41,46 @@ final class Extension extends CompilerExtension
 	{
 		$this->buildViteService();
 		$this->buildFilter();
+	}
+
+	public function beforeCompile(): void
+	{
+		$builder = $this->getContainerBuilder();
+
+		$templateFactoryDefinition = $builder->getDefinition('latte.templateFactory');
+		assert($templateFactoryDefinition instanceof ServiceDefinition);
+
+		if ($this->config->templateProperty !== '') {
+			$templateFactoryDefinition->addSetup(
+				new Statement('$onCreate[]', [
+					new Statement([
+						Helpers::class,
+						'prepareTemplate',
+					], [$this->config->templateProperty, $builder->getDefinition($this->prefix('service'))]),
+				]),
+			);
+		}
+
+		if ($this->config->filterName !== '' && $builder->hasDefinition('latte.latteFactory')) {
+			$definition = $builder->getDefinition('latte.latteFactory');
+			assert($definition instanceof FactoryDefinition);
+			$definition->getResultDefinition()
+				->addSetup('addFilter', [
+					$this->config->filterName,
+					$builder->getDefinition($this->prefix('assetFilter')),
+				]);
+		}
+
+		if ($this->config->debugMode && $builder->getByType(Bar::class) !== null) {
+			$definition = $this->getContainerBuilder()
+				->getDefinition($this->prefix('service'));
+
+			assert($definition instanceof ServiceDefinition);
+
+			$definition->addSetup(sprintf('@%s::addPanel', Bar::class), [
+				new Statement(VitePanel::class),
+			]);
+		}
 	}
 
 	private function buildViteService(): void
@@ -60,54 +104,6 @@ final class Extension extends CompilerExtension
 			->setAutowired(false);
 	}
 
-	public function beforeCompile(): void
-	{
-		$builder = $this->getContainerBuilder();
-
-		$templateFactoryDefinition = $builder->getDefinition('latte.templateFactory');
-		assert($templateFactoryDefinition instanceof Definitions\ServiceDefinition);
-
-		if ($this->config->templateProperty !== '') {
-			$templateFactoryDefinition->addSetup(
-				new Nette\DI\Definitions\Statement('$onCreate[]', [
-					new Definitions\Statement([
-						self::class,
-						'prepareTemplate',
-					], [$this->config->templateProperty, $builder->getDefinition($this->prefix('service'))]),
-				]),
-			);
-		}
-
-		if ($this->config->filterName !== '' && $builder->hasDefinition('latte.latteFactory')) {
-			$definition = $builder->getDefinition('latte.latteFactory');
-			assert($definition instanceof Definitions\FactoryDefinition);
-			$definition->getResultDefinition()
-				->addSetup('addFilter', [
-					$this->config->filterName,
-					$builder->getDefinition($this->prefix('assetFilter')),
-				]);
-		}
-
-		$tracyClass = Tracy\Bar::class;
-
-
-		if ($this->config->debugMode && $builder->getByType($tracyClass)) {
-			$definition = $this->getContainerBuilder()
-				->getDefinition($this->prefix('service'));
-			assert($definition instanceof Definitions\ServiceDefinition);
-			$definition->addSetup("@$tracyClass::addPanel", [
-				new Definitions\Statement(VitePanel::class),
-			]);
-		}
-	}
-
-	public static function prepareTemplate(string $propertyName, Service $service): \Closure
-	{
-		return static function (Nette\Application\UI\Template $template) use ($propertyName, $service): void {
-			$template->{$propertyName} = $service;
-		};
-	}
-
 	private function prepareManifestPath(): string
 	{
 		if ($this->config->manifestFile === null) {
@@ -124,13 +120,13 @@ final class Extension extends CompilerExtension
 			$manifestFile = $newPath;
 		}
 
-		return Nette\Safe::realpath($manifestFile);
+		return Safe::realpath($manifestFile);
 	}
 
 	private function prepareBasePath(string $manifestFile): string
 	{
 		if ($this->config->basePath === null) {
-			return str_replace(Nette\Safe::realpath($this->config->wwwDir), '', dirname($manifestFile)) . '/';
+			return str_replace(Safe::realpath($this->config->wwwDir), '', dirname($manifestFile)) . '/';
 		}
 
 		return $this->config->basePath;
@@ -138,11 +134,12 @@ final class Extension extends CompilerExtension
 
 	private function automaticSearchManifestFile(): string
 	{
-		$finder = Nette\Utils\Finder::findFiles('manifest.json')->from($this->config->wwwDir);
+		$finder = Finder::findFiles('manifest.json')->from($this->config->wwwDir);
 		$files = [];
 		foreach ($finder as $file) {
 			$files[] = $file->getPathname();
 		}
+
 		if ($files === []) {
 			throw new ManifestFileDoesNotExistsException(sprintf('Define path to manifest.json, because automatic search found nothing in "%s".', $this->config->wwwDir));
 		} elseif (count($files) > 1) {
@@ -151,4 +148,5 @@ final class Extension extends CompilerExtension
 
 		return reset($files);
 	}
+
 }

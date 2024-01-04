@@ -1,15 +1,14 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types = 1);
 
 namespace Contributte\Vite\Tracy;
 
 use Contributte\Vite\Service;
 use Nette\Safe;
-use Tracy;
+use Tracy\IBarPanel;
 
-final class VitePanel implements Tracy\IBarPanel
+final class VitePanel implements IBarPanel
 {
+
 	private Service $vite;
 
 	public function __construct(Service $vite)
@@ -17,15 +16,16 @@ final class VitePanel implements Tracy\IBarPanel
 		$this->vite = $vite;
 	}
 
-	public function getTab()
+	public function getTab(): string
 	{
 		$html = Safe::file_get_contents(__DIR__ . '/Vite.html');
 
 		return str_replace('%viteCookie%', $this->vite->getViteCookie(), $html);
 	}
 
-	public function getPanel()
+	public function getPanel(): string
 	{
 		return '';
 	}
+
 }
