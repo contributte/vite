@@ -3,7 +3,7 @@
 namespace Contributte\Vite\Nette;
 
 use Contributte\Vite\AssetFilter;
-use Contributte\Vite\ManifestFileDoesNotExistsException;
+use Contributte\Vite\Exception\LogicalException;
 use Contributte\Vite\Service;
 use Contributte\Vite\Tracy\VitePanel;
 use Nette\DI\CompilerExtension;
@@ -114,7 +114,7 @@ final class Extension extends CompilerExtension
 		if (!is_file($manifestFile)) {
 			$newPath = $this->config->wwwDir . DIRECTORY_SEPARATOR . ltrim($manifestFile, '/\\');
 			if (!is_file($newPath)) {
-				throw new ManifestFileDoesNotExistsException(sprintf('Found here "%s" or "%s".', $manifestFile, $newPath));
+				throw new LogicalException(sprintf('Found here "%s" or "%s".', $manifestFile, $newPath));
 			}
 
 			$manifestFile = $newPath;
@@ -141,9 +141,9 @@ final class Extension extends CompilerExtension
 		}
 
 		if ($files === []) {
-			throw new ManifestFileDoesNotExistsException(sprintf('Define path to manifest.json, because automatic search found nothing in "%s".', $this->config->wwwDir));
+			throw new LogicalException(sprintf('Define path to manifest.json, because automatic search found nothing in "%s".', $this->config->wwwDir));
 		} elseif (count($files) > 1) {
-			throw new ManifestFileDoesNotExistsException(sprintf('Define path to manifest.json, because automatic search found many manifest.json files %s.', implode(', ', $files)));
+			throw new LogicalException(sprintf('Define path to manifest.json, because automatic search found many manifest.json files %s.', implode(', ', $files)));
 		}
 
 		return reset($files);
