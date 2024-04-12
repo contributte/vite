@@ -6,7 +6,6 @@ use Contributte\Vite\Exception\LogicalException;
 use Nette\Http\Request;
 use Nette\Utils\FileSystem;
 use Nette\Utils\Html;
-use Nette\Utils\Json;
 
 final class Service
 {
@@ -23,6 +22,9 @@ final class Service
 
 	private Request $httpRequest;
 
+	/** @var array<array<mixed>> $manifest */
+	private array $manifest;
+
 	public function __construct(
 		string $viteServer,
 		string $viteCookie,
@@ -38,13 +40,21 @@ final class Service
 		$this->debugMode = $debugMode;
 		$this->basePath = $basePath;
 		$this->httpRequest = $httpRequest;
+
+		if (!file_exists($this->manifestFile)) {
+			trigger_error('Missing manifest file: ' . $this->manifestFile, E_USER_WARNING);
+		}
+
+		/** @var array<array<mixed>> $manifest */
+		$manifest = json_decode(FileSystem::read($this->manifestFile), true);
+		$this->manifest = $manifest;
 	}
 
 	public function getAsset(string $entrypoint): string
 	{
-        if (str_starts_with($entrypoint, 'http')) {
-            return $entrypoint;
-        }
+		if (str_starts_with($entrypoint, 'http')) {
+			return $entrypoint;
+		}
 
 		if ($this->isEnabled()) {
 			$baseUrl = $this->viteServer . '/';
@@ -52,15 +62,9 @@ final class Service
 		} else {
 			$entrypoint = ltrim($entrypoint, '/');
 			$baseUrl = $this->basePath;
-			$asset = '';
-
-			if (file_exists($this->manifestFile)) {
-				/** @var array<array<mixed>> $manifest */
-				$manifest = Json::decode(FileSystem::read($this->manifestFile), forceArrays: true);
-				$asset = $manifest[$entrypoint]['file'] ?? throw new LogicalException('Invalid manifest');
-			} else {
-				trigger_error('Missing manifest file: ' . $this->manifestFile, E_USER_WARNING);
-			}
+			/** @var array<array<mixed>> $manifest */
+			$manifest = $this->manifest;
+			$asset = $manifest[$entrypoint]['file'] ?? throw new LogicalException('Invalid manifest');
 		}
 
 		return $baseUrl . $asset;
@@ -74,14 +78,10 @@ final class Service
 		$assets = [];
 
 		if (!$this->isEnabled()) {
-			if (file_exists($this->manifestFile)) {
-				$entrypoint = ltrim($entrypoint, '/');
-				/** @var array<string, array<array<string, string>>> $manifest */
-				$manifest = Json::decode(FileSystem::read($this->manifestFile), forceArrays: true);
-				$assets = $manifest[$entrypoint]['css'] ?? [];
-			} else {
-				trigger_error('Missing manifest file: ' . $this->manifestFile, E_USER_WARNING);
-			}
+			$entrypoint = ltrim($entrypoint, '/');
+			/** @var array<string, array<array<string, string>>> $manifest */
+			$manifest = $this->manifest[$entrypoint];
+			$assets = $manifest[$entrypoint]['css'] ?? [];
 		}
 
 		return $assets;
