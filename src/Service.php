@@ -42,6 +42,10 @@ final class Service
 
 	public function getAsset(string $entrypoint): string
 	{
+        if (str_starts_with($entrypoint, 'http')) {
+            return $entrypoint;
+        }
+
 		if ($this->isEnabled()) {
 			$baseUrl = $this->viteServer . '/';
 			$asset = $entrypoint;
