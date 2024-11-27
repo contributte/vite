@@ -59,6 +59,10 @@ final class Service
 		/** @var array<string, array<array<string, string>>> $manifest */
 		$manifest = $this->manifest[$entrypoint];
 
+		if ($manifest === null) {
+			throw new LogicalException('Invalid manifest');
+		}
+
 		return $manifest;
 	}
 
