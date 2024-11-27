@@ -91,8 +91,8 @@ final class Service
 		if (!$this->isEnabled()) {
 			$manifest = $this->getEndpointManifest($entrypoint);
 
-			foreach ( $manifest['css'] as $css) {
-				return $this->basePath . $css;
+			foreach ($manifest['css'] ?? [] as $css) {
+				yield $this->basePath . $css;
 			}
 
 			if ($withNestedCss) {
