@@ -90,7 +90,10 @@ final class Service
 	{
 		if (!$this->isEnabled()) {
 			$manifest = $this->getEndpointManifest($entrypoint);
-			yield from $manifest['css'] ?? [];
+
+			foreach ( $manifest['css'] as $css) {
+				return $this->basePath . $css;
+			}
 
 			if ($withNestedCss) {
 				$imports = $manifest['imports'] ?? [];
