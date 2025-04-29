@@ -4,7 +4,7 @@ namespace Contributte\Vite;
 
 use Contributte\Vite\Exception\LogicalException;
 use Generator;
-use Nette\Http\Request;
+use Nette\Http\IRequest;
 use Nette\Utils\FileSystem;
 use Nette\Utils\Html;
 
@@ -21,7 +21,7 @@ final class Service
 
 	private string $basePath;
 
-	private Request $httpRequest;
+	private IRequest $httpRequest;
 
 	/** @var array<array<mixed>> $manifest */
 	private array $manifest;
@@ -32,7 +32,7 @@ final class Service
 		string $manifestFile,
 		bool $debugMode,
 		string $basePath,
-		Request $httpRequest
+		IRequest $httpRequest
 	)
 	{
 		$this->viteServer = $viteServer;
