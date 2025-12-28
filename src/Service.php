@@ -23,7 +23,7 @@ final class Service
 
 	private IRequest $httpRequest;
 
-	/** @var array<array<mixed>> $manifest */
+	/** @var array<string, array{file?: string, css?: list<string>, imports?: list<string>, dynamicImports?: list<string>}> */
 	private array $manifest;
 
 	public function __construct(
@@ -46,24 +46,9 @@ final class Service
 			trigger_error('Missing manifest file: ' . $this->manifestFile, E_USER_WARNING);
 		}
 
-		/** @var array<array<mixed>> $manifest */
+		/** @var array<string, array{file?: string, css?: list<string>, imports?: list<string>, dynamicImports?: list<string>}> $manifest */
 		$manifest = json_decode(FileSystem::read($this->manifestFile), true);
 		$this->manifest = $manifest;
-	}
-
-	/**
-	 * @return array<string, array<array<string, string>>>
-	 */
-	private function getEndpointManifest(string $entrypoint): array {
-		$entrypoint = ltrim($entrypoint, '/');
-		/** @var array<string, array<array<string, string>>> $manifest */
-		$manifest = $this->manifest[$entrypoint];
-
-		if ($manifest === null) {
-			throw new LogicalException('Invalid manifest');
-		}
-
-		return $manifest;
 	}
 
 	public function getAsset(string $entrypoint): string
@@ -105,7 +90,7 @@ final class Service
 	}
 
 	/**
-	 * @return array<string, string>
+	 * @return list<string>
 	 */
 	public function getImports(string $entrypoint): array
 	{
@@ -119,7 +104,7 @@ final class Service
 	}
 
 	/**
-	 * @return array<string, string>
+	 * @return list<string>
 	 */
 	public function getDynamicImports(string $entrypoint): array
 	{
@@ -168,6 +153,20 @@ final class Service
 	public function getViteCookie(): string
 	{
 		return $this->viteCookie;
+	}
+
+	/**
+	 * @return array{file?: string, css?: list<string>, imports?: list<string>, dynamicImports?: list<string>}
+	 */
+	private function getEndpointManifest(string $entrypoint): array
+	{
+		$entrypoint = ltrim($entrypoint, '/');
+
+		if (!isset($this->manifest[$entrypoint])) {
+			throw new LogicalException('Invalid manifest');
+		}
+
+		return $this->manifest[$entrypoint];
 	}
 
 }
