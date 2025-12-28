@@ -13,13 +13,12 @@ use Nette\Bridges\ApplicationDI\LatteExtension;
 use Nette\Bridges\ApplicationDI\RoutingExtension;
 use Nette\Bridges\HttpDI\HttpExtension;
 use Nette\DI\Compiler;
-use Nette\Safe;
 use Tester\Assert;
 
 require_once __DIR__ . '/../../bootstrap.php';
 
 Toolkit::test(static function (): void {
-	Safe::touch(Environment::getTestDir() . '/manifest.json');
+	file_put_contents(Environment::getTestDir() . '/manifest.json', '{}');
 
 	$container = ContainerBuilder::of()
 		->withCompiler(function (Compiler $compiler): void {
