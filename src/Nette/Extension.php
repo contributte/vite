@@ -10,7 +10,6 @@ use Nette\DI\CompilerExtension;
 use Nette\DI\Definitions\FactoryDefinition;
 use Nette\DI\Definitions\ServiceDefinition;
 use Nette\DI\Definitions\Statement;
-use Nette\Safe;
 use Nette\Schema\Expect;
 use Nette\Schema\Schema;
 use Nette\Utils\Finder;
@@ -120,13 +119,13 @@ final class Extension extends CompilerExtension
 			$manifestFile = $newPath;
 		}
 
-		return Safe::realpath($manifestFile);
+		return (string) realpath($manifestFile);
 	}
 
 	private function prepareBasePath(string $manifestFile): string
 	{
 		if ($this->config->basePath === null) {
-			return str_replace(Safe::realpath($this->config->wwwDir), '', dirname($manifestFile)) . '/';
+			return str_replace((string) realpath($this->config->wwwDir), '', dirname($manifestFile)) . '/';
 		}
 
 		return $this->config->basePath;

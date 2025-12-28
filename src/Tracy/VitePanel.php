@@ -3,7 +3,6 @@
 namespace Contributte\Vite\Tracy;
 
 use Contributte\Vite\Service;
-use Nette\Safe;
 use Tracy\IBarPanel;
 
 final class VitePanel implements IBarPanel
@@ -18,7 +17,7 @@ final class VitePanel implements IBarPanel
 
 	public function getTab(): string
 	{
-		$html = Safe::file_get_contents(__DIR__ . '/Vite.html');
+		$html = (string) file_get_contents(__DIR__ . '/Vite.html');
 
 		return str_replace('%viteCookie%', $this->vite->getViteCookie(), $html);
 	}
