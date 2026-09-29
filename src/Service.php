@@ -23,8 +23,8 @@ final class Service
 
 	private IRequest $httpRequest;
 
-	/** @var array<string, array{file?: string, css?: list<string>, imports?: list<string>, dynamicImports?: list<string>}> */
-	private array $manifest;
+	/** @var array<string, array{file?: string, css?: list<string>, imports?: list<string>, dynamicImports?: list<string>}>|null */
+	private ?array $manifest = null;
 
 	public function __construct(
 		string $viteServer,
@@ -41,14 +41,6 @@ final class Service
 		$this->debugMode = $debugMode;
 		$this->basePath = $basePath;
 		$this->httpRequest = $httpRequest;
-
-		if (!file_exists($this->manifestFile)) {
-			trigger_error('Missing manifest file: ' . $this->manifestFile, E_USER_WARNING);
-		}
-
-		/** @var array<string, array{file?: string, css?: list<string>, imports?: list<string>, dynamicImports?: list<string>}> $manifest */
-		$manifest = json_decode(FileSystem::read($this->manifestFile), true);
-		$this->manifest = $manifest;
 	}
 
 	public function getAsset(string $entrypoint): string
@@ -161,12 +153,38 @@ final class Service
 	private function getEndpointManifest(string $entrypoint): array
 	{
 		$entrypoint = ltrim($entrypoint, '/');
+		$manifest = $this->getManifest();
 
-		if (!isset($this->manifest[$entrypoint])) {
+		if (!isset($manifest[$entrypoint])) {
 			throw new LogicalException('Invalid manifest');
 		}
 
-		return $this->manifest[$entrypoint];
+		return $manifest[$entrypoint];
+	}
+
+	/**
+	 * @return array<string, array{file?: string, css?: list<string>, imports?: list<string>, dynamicImports?: list<string>}>
+	 */
+	private function getManifest(): array
+	{
+		if ($this->manifest !== null) {
+			return $this->manifest;
+		}
+
+		if (!is_file($this->manifestFile)) {
+			throw new LogicalException(sprintf('Missing manifest file "%s".', $this->manifestFile));
+		}
+
+		$manifest = json_decode(FileSystem::read($this->manifestFile), true);
+
+		if (!is_array($manifest)) {
+			throw new LogicalException(sprintf('Invalid manifest file "%s".', $this->manifestFile));
+		}
+
+		/** @var array<string, array{file?: string, css?: list<string>, imports?: list<string>, dynamicImports?: list<string>}> $manifest */
+		$this->manifest = $manifest;
+
+		return $this->manifest;
 	}
 
 }
