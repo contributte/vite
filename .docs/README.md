@@ -67,6 +67,8 @@ If set to false, then the vite assets are always loaded via manifest and tracy i
 
 Path to your manifest file. By default, it's auto-resolved from `wwwDir`.
 
+The manifest is read lazily, so a missing file does not break the application; it only fails on the first asset lookup in production mode (when the Vite dev server is not used). If no manifest is found, `%wwwDir%/manifest.json` is expected.
+
 ### filterName
 - **Type:** `string`
 - **Default:** `vite`

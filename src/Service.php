@@ -175,13 +175,13 @@ final class Service
 			throw new LogicalException(sprintf('Missing manifest file "%s".', $this->manifestFile));
 		}
 
+		/** @var array<string, array{file?: string, css?: list<string>, imports?: list<string>, dynamicImports?: list<string>}>|null $manifest */
 		$manifest = json_decode(FileSystem::read($this->manifestFile), true);
 
 		if (!is_array($manifest)) {
 			throw new LogicalException(sprintf('Invalid manifest file "%s".', $this->manifestFile));
 		}
 
-		/** @var array<string, array{file?: string, css?: list<string>, imports?: list<string>, dynamicImports?: list<string>}> $manifest */
 		$this->manifest = $manifest;
 
 		return $this->manifest;

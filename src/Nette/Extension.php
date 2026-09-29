@@ -12,6 +12,7 @@ use Nette\DI\Definitions\ServiceDefinition;
 use Nette\DI\Definitions\Statement;
 use Nette\Schema\Expect;
 use Nette\Schema\Schema;
+use Nette\Utils\FileSystem;
 use Nette\Utils\Finder;
 use stdClass;
 use Tracy\Bar;
@@ -110,22 +111,25 @@ final class Extension extends CompilerExtension
 		}
 
 		$manifestFile = $this->config->manifestFile;
-		if (!is_file($manifestFile)) {
-			$newPath = $this->config->wwwDir . DIRECTORY_SEPARATOR . ltrim($manifestFile, '/\\');
-			if (!is_file($newPath)) {
-				throw new LogicalException(sprintf('Found here "%s" or "%s".', $manifestFile, $newPath));
-			}
-
-			$manifestFile = $newPath;
+		if (is_file($manifestFile)) {
+			return (string) realpath($manifestFile);
 		}
 
-		return (string) realpath($manifestFile);
+		$newPath = $this->config->wwwDir . DIRECTORY_SEPARATOR . ltrim($manifestFile, '/\\');
+		if (is_file($newPath)) {
+			return (string) realpath($newPath);
+		}
+
+		// Manifest does not exist (yet), it is resolved lazily by Service
+		return FileSystem::isAbsolute($manifestFile) ? $manifestFile : $newPath;
 	}
 
 	private function prepareBasePath(string $manifestFile): string
 	{
 		if ($this->config->basePath === null) {
-			return str_replace((string) realpath($this->config->wwwDir), '', dirname($manifestFile)) . '/';
+			$manifestDir = realpath(dirname($manifestFile));
+
+			return str_replace((string) realpath($this->config->wwwDir), '', $manifestDir !== false ? $manifestDir : dirname($manifestFile)) . '/';
 		}
 
 		return $this->config->basePath;
@@ -140,8 +144,11 @@ final class Extension extends CompilerExtension
 		}
 
 		if ($files === []) {
-			throw new LogicalException(sprintf('Define path to manifest.json, because automatic search found nothing in "%s".', $this->config->wwwDir));
-		} elseif (count($files) > 1) {
+			// Manifest does not exist (yet), it is resolved lazily by Service
+			return $this->config->wwwDir . DIRECTORY_SEPARATOR . 'manifest.json';
+		}
+
+		if (count($files) > 1) {
 			throw new LogicalException(sprintf('Define path to manifest.json, because automatic search found many manifest.json files %s.', implode(', ', $files)));
 		}
 
